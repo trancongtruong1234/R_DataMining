@@ -1,0 +1,808 @@
+---
+title: "Report-DataMing"
+author: "Nhóm 2"
+date: '2022-06-05'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# FinalProject_Telecommunication
+
+# Tên Thành Viên Trong Nhóm
+
+| Name       | Student_ID          | Task  |
+| ------------- |:-------------:| :-----------|
+| Trần Văn Duy    | 19133016 | Model Random Forest |
+| Nguyễn Duy Phước      | 19133003     | Model  Logistic Regression |
+| Trần Công Trường     |    19133062 |  Model KNN        |
+| Cao Anh Văn     |    19133067 |    Model Decsion Tree      |
+
+# 1. Giới thiệu chung
+## 1.1. Giới thiệu về bài toán giải quyết
+  * Bài toán nhóm muốn giải quyết là dự đoán khách hàng có thuộc vào nhóm khách hàng sẽ rời đi hay không để đưa ra phương án giữ khách hàng.
+  * Theo nghiên cứu đã chỉ ra rằng việc thu hút 1 khách hàng mới tốn nhiều chi phí hơn việc giữ khách hàng hiện tại. Trên thực tế, việc tăng tỷ lệ giữ chân khách hàng chỉ 5% cũng có thể tạo ra lợi nhuận tăng ít nhất 25%.
+  * Việc dự đoán được khách hàng nào có khả năng rời đi thì sẽ giúp cho người quản lý đưa ra giải pháp kịp thời để không mất đi một khách hàng tiềm năng. (Tham khảo ở https://crmviet.vn/customer-churn-la-gi/)
+  * Input: Các thông tin cá nhân và thông tin về việc sử dụng dịch vụ của khách hàng: Giới tính, Tình trạng hôn nhân, thời hạn, có sử dụng dịch vụ điện thoại hay không, , , , dịch vụ mạng, hỗ trợ kỹ thuật, video trực tiếp, ,
+  * Output: chúng em sử dụng thuật toán Decision Tree để dự đoán khách hàng có khả năng rời đi trong tương lai hay không?
+  * Các nghiên cứu liên quan: Dự đoán hành vi của khách hàng có rời đi hay không, từ đó đưa ra cách giải quyết để giữ chân khách hàng tiềm năng.(Tham khảo ở https://www.profitwell.com/customer-churn/causes)
+
+## 1.2. Giới thiệu về tập dữ liệu
+
+  * Dữ liệu của nhóm được lấy từ trang kaggle
+    :<https://www.kaggle.com/datasets/blastchar/telco-customer-churn>
+  * Dữ liệu trên trang kaggle được cung cấp bởi công ty dịch vụ viễn
+    thông ở California .
+  *  Biến đầu ra dự đoán : **Churn,** nhận 2 giá trị là yes or no tương
+    ứng lần lượt với khách hàng có rời đi và không rời đi.
+  * Chia tập dữ liệu. Chúng ta sẽ chia tập dữ liệu theo tỷ lệ 80-20.
+    
+### 1.2.1 Tập dữ liệu
+
+**Tổng quan dataset:**
+```{r echo=FALSE}
+data <-read.csv('Telecommunication.csv')
+summary(data)
+```
+**6 Dòng Đầu :**`
+```{r echo=FALSE}
+head(data)
+```
+**Số dòng :**
+
+```{r echo=FALSE}
+nrow(data)
+```
+  **Số cột :**
+ 
+```{r echo=FALSE}
+ncol(data)
+```  
+
+### 1.2.2 Giải thích thuộc tính
+
+* **CustomerID**: id của mỗi khách hàng.
+* **Gender**: giới tính  ( male, female).
+* **SeniorCitizen**: người cao tuổi (0,1).
+* **Partner**: Có cộng sự hay không ( yes, no).
+* **Dependents**: Có người phụ thuộc hay không ( yes, no).
+* **tenure**: số tháng ở lại với công ty.
+* **PhoneService**: có sử dụng dịch vụ điện thoại hay không ( yes, no).
+* **MultipleLines**: có nhiều đường dây hay không ( yes, no, no phone).
+* **InternetService**: nhà cung cấp dịch vụ điện thoại (DSL, có, không).
+* **Online Security**: Cho biết liệu khách hàng có đăng ký dịch vụ bảo mật trực tuyến bổ sung do công ty cung cấp hay không (yes, no).
+* **OnlineBackup**: dịch vụ sao lưu online ( yes, no, no internet ).
+* **DeviceProtection**: dịch vụ bảo vệ thiết bị ( yes, no , no internet).
+* **TechSupport**: hỗ trợ kĩ thuật ( yes, no , no internet).
+* **StreamingTV**: truyền hình trực tuyến ( yes, no, no internet).
+* **Contract**: Cho biết loại hợp đồng hiện tại của khách hàng : Month-to-Month, One Year, Two Year.
+* **StreamingMovies**: xem phim trực tuyến ( yes, no , no internet).
+* **PaperlessBilling**: thanh toán trực tuyến ( yes, no) .
+* **PaymentMethod**: phương thức thanh toán.
+* **Monthly Charges**: thanh toán hằng tháng.
+* **TotalCharges**: tổng thanh toán.
+* **Churn**: quyết định rời đi hay tiếp tục sử dụng dịch vụ ( yes, no).
+
+# 2. Giải quyết bài toán    
+## 2.1 Thuật toán Decsion Tree   
+
+```{r echo=FALSE,include=FALSE}
+
+library(tidyverse)
+library(cowplot)
+library(corrplot)
+library(car)
+library(MASS)
+library(caret)
+library(e1071)
+library(magrittr)
+library(dplyr)
+library(caTools)
+library(rpart)
+library(ROCR)
+library(rpart.plot)
+library(ggcorrplot)
+library(pROC)
+library(DataExplorer)
+library(stringr)
+library(randomForest)
+library(gridExtra)
+library(ggthemes)
+```
+
+### 2.1.1 Tiền xử lí dữ liệu
+
+> **Kiểm tra tập dữ liệu có giá trị NA hay không ?**
+
+```{r echo = FALSE}
+data %>%
+    summarise_all(
+        funs(sum(is.na(.)))
+    ) %>%
+gather(ColumnTitle, NAs, customerID:Churn)
+```
+=> Có một số dòng có cột TotalCharges bị missing value.
+
+> Xóa các dòng có TotalCharges bị NA.
+
+```{r echo=FALSE}
+data<-data %>% drop_na(TotalCharges)
+```
+> Cột SeniorCitizen có giá trị 0 và 1 ta sẽ biến đổi về kiểu logical
+
+```{r echo=FALSE}
+data <- data %>%
+mutate(
+    # column was int but best to have it as logical
+    SeniorCitizen = as.logical(SeniorCitizen)
+)
+str(data)
+```
+> Kịch bản tốt nhất là dự đoán được kết quả tốt nhất với ít biến income
+> nhất. Nên ta sẽ tìm hiểu sự tương quan giữa các biến để loại bỏ một số
+> biến có tương quan cao. Các biến có tương quan cao là dư thừa và không
+> cung cấp bất kỳ thông tin nào. Đôi khi làm cho thuật toán bị lỗi hoặc
+> đem lại kết quả không tốt.
+
+> Đối với 3 biến liên tục
+
+```{r echo=FALSE}
+data_continuous<-subset(data,,c(TotalCharges,MonthlyCharges,tenure))
+corr = round(cor(data_continuous), 2)
+ggcorrplot(corr, type="lower", lab=T, hc.order =T)
+```
+
+> Từ kết quả ta thấy biến tenure và TotalCharges có tương quan khá cao
+> nên sẽ loại bỏ biến TotalCharges ra khỏi tập dữ liệu dùng để dự đoán.
+
+
+## 2.1.2 Model
+
+```{r echo=FALSE}
+
+options(repr.plot.width = 4, repr.plot.height = 4)
+
+
+
+
+function_columns <- subset(data,,c(gender, SeniorCitizen, Partner, Dependents, PhoneService, MultipleLines, InternetService, OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport,StreamingTV, StreamingMovies, Contract, PaperlessBilling, PaymentMethod, Churn))
+
+
+for (i in 1:(ncol(function_columns)-1))
+{
+  
+    cname <- colnames(function_columns[c(i,17)])
+ 
+    a <- subset(
+        function_columns, !is.na(function_columns[,i]) & function_columns[,i] != "",
+                select = cname
+    ) %>%
+
+    group_by_at(vars(cname)) %>%
+    summarize(
+        n = n()
+    ) %>%
+    mutate(
+        Percentage = round(n / sum(n), 2)
+    )
+    
+
+    p <- ggplot(
+        data = a, aes_string(
+            x = colnames(a[1]), y = colnames(a[4]), fill = colnames(a[1])
+        )
+    ) +
+
+    facet_wrap("Churn") + 
+    geom_bar(stat = "identity") +
+
+    theme(
+        axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+        axis.text.x = element_text(angle = 70, hjust = 1),
+        legend.position="none"
+    ) +
+    geom_text(
+        aes(y = Percentage, label = paste0(Percentage * 100,"%"))
+    ) +
+    labs(
+        x = colnames(a[1]), y = "Churn", title = paste("Churn and", colnames(a[1]))
+    )
+    
+
+    print(p)
+
+    rm(cname, a, p)
+}
+```
+```{r}
+data.model <- subset(data, ,-c(customerID, gender,PhoneService, MultipleLines, TotalCharges))
+```
+
+
+```{r echo=FALSE,include=FALSE}
+set.seed(123)
+
+train.index <- createDataPartition(
+    y = data.model$Churn, p = 0.8, list = FALSE
+)
+
+train <- data.model[train.index,]
+test <- data.model[-train.index,]
+```
+> **Dự đoán với mô hình Decision Tree**
+
+> **Decision tree** là một mô hình supervised learning. Cây quyết định (
+> Decision Tree ) là một cây phân cấp có cấu trúc được dùng để phân lớp
+> các đối tượng dựa vào dãy các luật.
+>
+> Được sử dụng phổ biến là 2 tham số Information Gain và Gini index để
+> đánh giá việc phân chia.
+>
+> **Information Gain** dựa trên sự giảm của hàm Entropy khi tập dữ liệu
+> được phân chia trên một thuộc tính.
+>
+> **Gini index** tính độ lệch gini của node cha với tổng các giá trị
+> gini có đánh trọng số của các node con.
+
+```{r echo=FALSE}
+options(repr.plot.width = 6, repr.plot.height = 4)
+# Fit model
+tree.fit <- rpart(
+    Churn ~ ., 
+    data = train, 
+    method = "class"
+)
+
+rpart.plot(
+
+    tree.fit
+)
+tree.prob <- predict(
+    tree.fit,
+    test,
+    type = "prob"
+)
+tree.pred <- predict(
+    tree.fit,
+    test,
+    type = "class"
+)
+confusionMatrix(
+    tree.pred,as.factor(test$Churn)
+)
+```
+> AUC : The Area Under the Curve (AUC) Diện tích dưới đường cong (AUC)
+> là **thước đo khả năng phân biệt giữa các lớp của một bộ phân
+> loại** và được sử dụng như một bản tóm tắt của đường cong ROC. AUC
+> càng cao, hiệu suất của mô hình càng tốt trong việc phân biệt giữa các
+> lớp tích cực và tiêu cực.
+
+```{r echo=FALSE}
+testtree_actual <- ifelse(test$Churn == "Yes", 1,0)
+roc <- roc(testtree_actual, tree.prob[,2], plot = TRUE, print.auc = TRUE)
+```
+
+> **Nhận xét :** ta thấy chỉ số đánh giá AUC ở đây là 0.799 -> thuật
+> toán chưa thực sự tốt.
+
+> **Cắt tỉa cây**
+>
+
+> -   **Complexity parameter** (cp) : tham số độ phức tạp trong r để
+>     điều chỉnh độ sâu của cây.
+>
+> -   CP sẽ quyết định có tiếp tục tách nút hay không .
+>
+> -   Trước khi tách nút, lỗi là 0,5 và sau khi tách, lỗi là 0,1 thì quá
+>     trình tách sẽ hữu ích, trong đó như thể lỗi trước khi tách là 0,5
+>     và sau khi tách là 0,48 thì không.
+>
+> -   Giá trị mặc định là 0.01.
+>
+> -   Để cắt tỉa cây, chúng tôi khám phá *bảng CP* được trả về
+>     trong rpart để tìm giá trị của tham số độ phức tạp với sai số dự
+>     đoán ước tính tối ưu. Sai số dự đoán ước tính của mỗi cây con
+>     (tương ứng với mỗi giá trị của CP) được chứa trong cột xerrorvà độ
+>     lệch chuẩn liên quan nằm trong cột xstd. Chúng tôi muốn tìm giá
+>     trị của CP mang lại một cây được cắt tỉa tương ứng với sai số dự
+>     đoán ước tính nhỏ nhất. Hàm printcp hiển thị bảng CP tương ứng với
+>     một rpartđối tượng
+>
+> -   Ta sẽ chọn ra cây nhỏ nhất và có xerror nhỏ nhất.
+
+```{r echo=FALSE}
+printcp(tree.fit)
+```
+
+```{r echo=FALSE}
+(b <- tree.fit$cptable[which.min(tree.fit$cptable[, "xerror"]), "CP"])
+```
+
+```{r echo=FALSE}
+tree_prune <- prune(tree.fit, cp = b)
+```
+
+
+```{r echo=FALSE}
+rpart.plot(tree_prune)
+```
+
+> **Nhận xét** : Sau khi thực hiện cắt tỉa cây : sau khi thực hiện ta
+> nhận thấy cây nhận được giống với cây ban đầu. Tức là hàm rpart() ở
+> trên (trước khi cắt tỉa đã chọn giá trị cp tốt nhất) và giá trị cp ở
+> đây là 0.01.
+
+## 2.2 Thuật toán Random FOrest
+```{r echo=FALSE,include=FALSE}
+# Khai báo các thử viện.
+rm(list = ls())
+library(plyr)
+library(corrplot)
+library(ggplot2)
+library(gridExtra)
+library(ggthemes)
+library(caret)
+library(MASS)
+library(randomForest)
+library(party)
+library(pROC)
+library(DataExplorer)
+library(stringr)
+library(rpart)
+library(rpart.plot)
+library(cowplot)
+library(e1071)
+```
+```{r echo=FALSE}
+churn<-read.csv('Telecommunication.csv')
+churn <- na.omit(churn)
+```
+
+### 2.2.1 Tiền xử lí dữ liệu
+
+>Change thay đổi giá trị No phone service ở cột MultipleLines thành no.
+
+```{r echo=FALSE}
+
+churn$MultipleLines <- as.factor(mapvalues(churn$MultipleLines, 
+                                           from=c('No phone service'),
+                                           to=c('No')))
+```
+>Thay đổi giá trị ở cột SeniorCitizen, 0 sẽ thành no và 1 thành yes.
+
+```{r echo=FALSE}
+
+churn$SeniorCitizen <- as.factor(mapvalues(churn$SeniorCitizen,
+                                           from=c("0","1"),
+                                           to=c("No", "Yes")))
+      
+```
+
+>Loại bỏ một số thuộc tính đầu vào có mối tương quan cao làm ảnh hưởng đến quá trình phân tích.
+
+```{r echo=FALSE}
+
+churn <- subset (churn, select = -customerID)
+churn <- subset (churn, select = -gender)
+churn <- subset (churn, select = -tenure)
+churn <- subset (churn, select = -TotalCharges)
+```
+
+```{r echo=FALSE,include=FALSE}
+#Compare models for prediction
+churn$Churn  <- factor(churn$Churn)
+```
+
+
+```{r echo=FALSE, include=FALSE}
+#Chia dữ liệu cho tập train và tập test.
+intrain<- createDataPartition(churn$Churn,p=0.75,list=FALSE)
+training<- churn[intrain,]
+testing<- churn[-intrain,]
+```
+### 2.2.2 Model
+> Training tập train bằng mô hình random forest.
+
+```{r echo=FALSE}
+
+rfModel <- randomForest(Churn ~., data = training)
+print(rfModel)
+```
+>Độ chính xác của mô hình trên tập train.
+
+```{r echo=FALSE}
+
+pred_rf <- predict(rfModel, training)
+caret::confusionMatrix(factor(pred_rf), factor(training$Churn))
+```
+> Vẽ AUC
+
+```{r echo =FALSE}
+
+testrf_actual <- ifelse(training$Churn == "Yes", 1,0)
+roc <- roc(testrf_actual,factor(pred_rf
+                                ,ordered=TRUE) , plot = TRUE, print.auc = TRUE)
+```
+
+> Tại ntree =200 , tỷ lệ lỗi nó cân bằng. Xác định mtry nào thì error bé nhất.
+
+```{r echo=FALSE}
+
+t <- tuneRF(training[, -17], training[, 17], stepFactor = 0.5, plot = TRUE, ntreeTry = 200, trace = TRUE, improve = 0.05)
+```
+
+> Cải thiện mô hình với ntree=200, mtry=2 trên tập train.
+
+```{r echo=FALSE}
+
+rfModel_new <- randomForest(Churn ~., data = training, ntree = 200, mtry = 2, importance = TRUE, proximity = TRUE)
+print(rfModel_new)
+```
+
+> Áp dụng dự đoán lại trên tập test và xem lại độ chính xác trên tập train.
+
+```{r echo=FALSE}
+
+
+
+pred_rf_new <- predict(rfModel_new, testing)
+caret::confusionMatrix(factor(pred_rf_new), factor(testing$Churn))
+
+```
+
+> Vẽ AUC trên tập test.
+
+```{r echo=FALSE}
+
+testrf_actual <- ifelse(testing$Churn == "Yes", 1,0)
+roc <- roc(testrf_actual,factor(pred_rf_new,ordered=TRUE) , plot = TRUE, print.auc = TRUE)
+```
+
+> Xác top 10 các biến có độ ảnh hưởng cao nhất đến mô hình
+
+```{r echo=FALSE}
+
+varImpPlot(rfModel_new, sort=T, n.var = 10, main = 'Top 10 Feature Importance')
+```
+
+> **Nhận Xét:**
+>Sau khi cải thiện mô hình trên tập train và áp dụng lên tập test thì Accuracy=0.7763, AUC = 0.665.
+>Độ chính xác của mô hình chưa được cao.
+>Các biến như là Contract, MonthlyCharges là các biến quan trọng nhất trong tập dữ liệu ảnh hưởng cao nhất tới mô hình dự >đoán.
+
+## 2.3 Thuật toán KNN
+```{r echo=FALSE,include=FALSE}
+require(kknn)
+library(kknn)
+library(e1071)
+data <- read.csv("Telecommunication.csv")
+```
+### 2.3.1 Tiền xư lí dữ liệu
+>Loại bỏ biến không cần thiết là customerId **
+
+```{r echo=FALSE}
+data$customerID <- NULL
+
+```
+
+> Loại bỏ các giá trị null 
+
+```{r echo=FALSE}
+data <- na.omit(data)
+sapply(data,function(x)sum(is.na(x)))
+str(data)
+```
+> Tạo hàm giúp tính độ chính xác của mô hình 
+
+```{r}
+cost_matrix <- matrix(c(1,0,0,1), nrow = 2)
+cost_matrix
+accuracy <- function(cm){
+  return(cm*cost_matrix)
+}
+```
+
+```{r echo = FALSE, include=FALSE}
+#Chia tập train 80% và test 20% **
+row <- nrow(data)
+train_index <- sample(1:row, size = trunc(0.8 * row))
+train_set <- data[train_index,]
+test_set <- data[-train_index,]
+train_row <- nrow(train_set)
+```
+
+>Chia tập train thành 7 fold để train bằng phương pháp cross validation
+
+```{r echo=FALSE}
+nfolds <- 7 # số fold
+ids <- 1:train_row #tạo id từ 1 tới số dòng tập train
+index <- sample(ids) # xao tron ngau nhien ids
+fold <- rep(1:nfolds, each = train_row/nfolds, len = length(index)) # Tạo mảng từ 1 tới 7, coppy mỗi phần từ bằng số dòng dữ liệu của mỗi folds, được mảng dài bằng số lượng index
+folds <- split(index, fold) # tao mot danh sach voi cac index cho moi fold
+data <- train_set
+data$Churn <- as.character(data$Churn)
+data$Churn <- as.factor(data$Churn)
+```
+### 2.3.2 Model
+> Tạo ma trận lưu kết quả của mỗi k
+
+```{r echo=FALSE}
+ks <- c(1:100)
+accs <- matrix(0, nrow = length(ks), ncol = nfolds + 1)
+result <- matrix(0, nrow = length(ks), ncol = nfolds + 2)
+length(fold)
+length(index)
+```
+> Huấn luyện mô hình và lưu kết quả vào ma trận kết quả đã tạo với tham số k từ 1 tới 100
+
+```{r echo=FALSE, include=FALSE}
+set.seed(1111)
+for (k in ks) {
+  s = 0
+  for (i in 1:nfolds) {
+      t <- kknn(Churn ~.,
+        train = data[-folds[[i]], ],
+        test = data[folds[[i]], ],
+        k = k,
+        distance = 2,
+        kernel = "gaussian")
+    Churn.Fitted <- fitted(t)
+    confusion <- table(Churn.Fitted,data[folds[[i]],"Churn"])
+    confusion_cost <- accuracy(confusion)
+    a <- sum(confusion_cost)/length(folds[[i]])
+    s = s + a
+    accs[k, i] = a
+    result[k, i] = a
+  }
+  result[k, nfolds + 1] = k
+  accs[k, nfolds + 1] = s / nfolds
+  result[k, nfolds + 2] = s / nfolds
+}
+rownames(accs) <- paste ("k = ", ks, sep = "")
+colnames(accs) <- c(paste("fold ", 1:nfolds, sep = ""), "average")
+rownames(result) <- paste ("k = ", ks, sep = "")
+colnames(result) <- c(paste("fold ", 1:nfolds, sep = ""),"k", "average")
+accs
+```
+> Đồ thị kết quả theo k
+
+```{r echo=FALSE}
+library(ggplot2)
+data <- data.frame(k = ks, r = as.numeric(accs[, nfolds + 1]))
+ggplot(data = data, mapping = aes(x = k, y = r)) +
+theme_light() +
+ggtitle("Average accuracy by k-fold cross validation") +
+xlab("k") +
+ylab("Accuracy") +
+geom_point(colour = "blue", size = 4, shape = 21, fill = "white") +
+geom_line(colour = "red", linetype = "dashed", fill = "white")
+```
+> Tìm giá trị k tốt nhất
+
+```{r echo=FALSE}
+
+result_df <- as.data.frame(result)
+get_max <- result_df[which(result_df$average == max(result_df$average)),]
+k_fit = get_max$k[1]
+k_fit
+
+```
+
+>Dự đoán mô hình với tập test
+
+```{r echo=FALSE}
+train_set$Churn <- as.factor(train_set$Churn)
+test_set$Churn <- as.factor(test_set$Churn)
+t <- kknn(Churn ~., train_set,test_set, k=k_fit  , distance = 2, kernel = "gaussian")
+fit <- fitted(t)
+confusion <- table(fit,test_set$Churn)
+confusion_cost <- accuracy(confusion)
+res <- sum(confusion_cost)/nrow(test_set)
+```
+
+> Độ chính xác
+
+```{r echo=FALSE}
+res
+```
+> AUC
+
+```{r echo=FALSE}
+library(pROC)
+testSet1 <- test_set
+fit1 <- fit
+
+levels(testSet1$Churn) <-c("0","1")
+testSet1$Churn[testSet1$Churn == "yes"] <- 1
+testSet1$Churn[testSet1$Churn == "no"] <- 0
+
+levels(fit1) <-c("0","1")
+fit1[fit1 == "yes"] <- 1
+fit1[fit1 == "no"] <- 0
+#testSet1$Churn <- as.ordered(testSet1$Churn)
+#fit1 <- as.ordered(fit)
+roc <- roc(testSet1$Churn, factor(fit1,ordered = TRUE),  plot= TRUE, print.auc=TRUE)
+```
+
+> **Nhận xét :**
+
+> Với mô hình K-NN, độ chính xác Accuracy = 0.7896 và chỉ số AUC= 0.731 vẫn còn tương đối thấp, chưa thể áp dụng vào thực tế
+
+>Mô hình chưa đem lại hiệu quả cao
+
+## 2.4 Thuật toán Logistic Regression
+```{r echo=FALSE, warning = FALSE, message=FALSE, include=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(corrplot)
+library(caret)
+library(rms)
+library(MASS)
+library(e1071)
+library(ROCR)
+library(gplots)
+library(pROC)
+library(rpart)
+library(randomForest)
+library(ggpubr)
+library(reshape2)
+```
+
+```{r echo=FALSE, include=FALSE}
+
+telco = read.csv("Telecommunication.csv")
+telco <- data.frame(telco)
+```
+
+
+### 2.3.1 Tiền xư lí dữ liệu
+
+> Biến đổi biến tenure thành 5 level "1-2 years", "2-3 years", "3-4 years", "4-5 years", "5-6 years" 
+
+
+
+```{r echo =FALSE , include=FALSE}
+
+telco = read.csv("Telecommunication.csv")
+telco <- data.frame(telco)
+```
+```{r echo= FALSE, warning = FALSE, message=FALSE}
+telco %>%
+  mutate(tenure_year = case_when(tenure <= 12 ~ "0-1 year",
+                                 tenure > 12 & tenure <= 24 ~ "1-2 years",
+                                 tenure > 24 & tenure <= 36 ~ "2-3 years",
+                                 tenure > 36 & tenure <= 48 ~ "3-4 years",
+                                 tenure > 48 & tenure <= 60 ~ "4-5 years",
+                                 tenure > 60 & tenure <= 72 ~ "5-6 years")) -> telco
+telco$tenure <-NULL
+table(telco$tenure_year)
+```
+
+
+
+> Chuyển các giá trị phân loại thành (0, 1) 
+
+```{r echo= TRUE, warning = FALSE, message=FALSE, include=FALSE}
+telco_lr <- telco
+```
+```{r echo= FALSE, warning = FALSE, message=FALSE, include=FALSE}
+telco_lr %>%
+  mutate(Churn = ifelse(Churn == "Yes", 1, 0)) -> telco_lr
+telco_lr %>%
+  mutate(gender = ifelse(gender == "Female", 1, 0)) -> telco_lr
+telco_lr %>%
+  mutate(Partner = ifelse(Partner == "Yes", 1, 0)) -> telco_lr
+telco_lr %>%
+  mutate(PhoneService = ifelse(PhoneService == "Yes", 1, 0)) -> telco_lr
+telco_lr %>%
+  mutate(Dependents = ifelse(Dependents == "Yes", 1, 0)) -> telco_lr
+telco_lr %>%
+  mutate(PaperlessBilling = ifelse(PaperlessBilling == "Yes", 1, 0)) -> telco_lr
+```
+
+> Xóa customerID và thực hiện mã hóa một lần để tạo các biến giả cho tất cả các biến đặc tính.
+
+```{r echo= TRUE, warning = FALSE, message=FALSE, include=FALSE}
+telco_lr$customerID <- NULL
+dmy <- dummyVars(" ~ .", data = telco_lr)
+dmy <- data.frame(predict(dmy, newdata = telco_lr))
+str(dmy)
+```
+>  Xóa các hàng có "No phone service" 
+
+```{r echo= TRUE, warning = FALSE, message=FALSE, include=FALSE}
+dmy$MultipleLinesNo.phone.service <- NULL
+dmy$OnlineSecurityNo.internet.service <- NULL
+dmy$OnlineBackupNo.internet.service <- NULL
+dmy$DeviceProtectionNo.internet.service <- NULL
+dmy$TechSupportNo.internet.service <- NULL
+dmy$StreamingTVNo.internet.service <- NULL
+dmy$StreamingMoviesNo.internet.service <- NULL
+```
+> Loại bỏ mức cuối cùng của mỗi yếu tố để tránh các điểm kỳ dị
+
+```{r echo= TRUE, warning = FALSE, message=FALSE , include=FALSE}
+dmy$ContractTwo.year <- NULL
+dmy$InternetServiceNo <- NULL
+dmy$PaymentMethodMailed.check <- NULL
+dmy$tenure_year5.6.years <- NULL
+```
+### 2.4.2 Model
+
+```{r echo= TRUE, warning = FALSE, message=FALSE, include=FALSE}
+set.seed(818)
+assignment <- sample(0:1, size= nrow(dmy), prob = c(0.75,0.25), replace = TRUE)
+train <- dmy[assignment == 0, ]
+test <- dmy[assignment == 1, ]
+```
+
+```{r echo= TRUE,include=FALSE}
+model4 <- glm(formula = Churn ~  SeniorCitizen + Dependents + PhoneService + MultipleLinesNo + InternetServiceDSL + OnlineBackupNo +
+DeviceProtectionNo + ContractMonth.to.month + ContractOne.year + 
+PaperlessBilling + PaymentMethodElectronic.check + MonthlyCharges + tenure_year0.1.year + tenure_year1.2.years,
+family = "binomial", data = train)
+```
+```{r echo= FALSE, warning = FALSE, message=FALSE,include=FALSE}
+summary(model4)
+```
+> Cross Validation (Confusion Matrix & ROC)
+
+```{r echo= FALSE, warning = FALSE, message=FALSE, include=FALSE}
+model_logit <- model4
+predict(model_logit, data = train, type = "response") -> train_prob
+predict(model_logit, newdata = test, type = "response") -> test_prob
+```
+
+```{r echo= FALSE, warning = FALSE, message=FALSE,include=FALSE}
+train_pred <- factor(ifelse(train_prob >= 0.5, "Yes", "No"))
+train_actual <- factor(ifelse(train$Churn == 1, "Yes", "No"))
+test_pred <- factor(ifelse(test_prob >= 0.5, "Yes", "No"))
+test_actual <- factor(ifelse(test$Churn == 1, "Yes", "No"))
+```
+> Trên Train set
+
+```{r echo= FALSE, warning = FALSE, message=FALSE}
+confusionMatrix(data = train_pred, reference = train_actual)
+roc <- roc(train$Churn, train_prob, plot= TRUE, print.auc=TRUE)
+```
+
+> Trên Test set
+
+
+```{r echo= FALSE, warning = FALSE, message=FALSE}
+confusionMatrix(data = test_pred, reference = test_actual)
+roc <- roc(test$Churn, test_prob, plot= TRUE, print.auc=TRUE)
+```
+
+> **Nhận xét :**
+> Trên tập train có acc khoảng 0.8 và AUC khoảng 0.85 và Tập test có acc khoàng 0.79 và AUC khoảng 0.82
+
+> Model này rất tốt vì acc và AUC không có sự khác biệt lớn trên 2 tạp train test
+
+> Nhưng chỉ số Specificities ở 2 tập còn rất thấp khoảng 0.46
+
+# 3. TỔng kết
+
+## 3.1 Kết quả
+
+>Model Hồi quy logistic có Độ chính xác là 0,79 và AUC là 0,82.-> ổn nhất 
+
+>Dựa trên các giá trị P-value cho các biến, PhoneService , InternetServiceDSL , OnlineBackup , Contract , PaperleslsBilling , PaymentMethodElectronic.check ,  Monthlychange , turne 0-1 năm và 1-2 năm có ảnh hưởng đáng kể hơn đến việc dự đoán thời gian ngừng hoạt động .
+
+## 3.2 Những chính sách cho Cty sau khi thu được kết quả từ model
+
+> Ràng buộc khách hàng mới bằng hợp đồng từ 1 đến 2 năm.
+
+> Đẩy mạnh việc thanh toán của khách hàng qua automatic bằng hoàn tiền hoặc khuyến mãi.
+
+> Cơ sở hạ tầng & trình độ công nghệ của OnlineSecurity, OnlineBackup, StreamingMovies, StreamingTV cần được cải thiện hàng loạt. Cần phân tích nguyên nhân gốc rễ về mặt kỹ thuật vì những yếu tố này đang ảnh hưởng đến tỷ lệ khách hàng sử dụng Internet cao nhất.
+
+> Khách hàng sử dụng dịch vụ cáp quang (InternetService : fiber optic )có tỷ lệ rời đi (churn : yes ) cao hơn khách hàng DSL (cáp đồng). Công nghệ và cơ sở hạ tầng của dịch vụ cáp quang cần được cải thiện. Đồng thời, xem xét các ưu đãi và giảm giá để thu hút khách hàng mới đăng ký để cải thiện dịch vụ này.
+
+
+
+
