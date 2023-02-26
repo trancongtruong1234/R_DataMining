@@ -106,7 +106,7 @@
 
 ## ecision Tree
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/653803f7758f3149e4626ad2a0b32cd7923196d0.png){width=200px}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/653803f7758f3149e4626ad2a0b32cd7923196d0.png)
 
     ## Confusion Matrix and Statistics
     ## 
@@ -140,11 +140,10 @@
 
     ## Setting direction: controls < cases
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/794d54212c7aa8cccf7a3d8f20f7a651b7a8b766.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/794d54212c7aa8cccf7a3d8f20f7a651b7a8b766.png)
 
 > ACC is 0.811
 
-::: {#tree-pruning .section .level3}
 ### tree pruning
 
     ## 
@@ -165,7 +164,7 @@
 
     ## [1] 0.01
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/653803f7758f3149e4626ad2a0b32cd7923196d0.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/653803f7758f3149e4626ad2a0b32cd7923196d0.png)
 
 ## Random Forest
 
@@ -227,7 +226,7 @@
 
 > draw AUC
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/7b12492068da93ea32bfcb45aa52130893f45844.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/7b12492068da93ea32bfcb45aa52130893f45844.png)
 
     ## mtry = 4  OOB error = 22.98% 
     ## Searching left ...
@@ -239,7 +238,7 @@
     ## mtry = 1     OOB error = 24.28% 
     ## -0.1148825 0.05
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/6ecb652c9f049e2b457c9379394e93b62ab28262.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/6ecb652c9f049e2b457c9379394e93b62ab28262.png)
 
 > improve model wit ntree=200, mtry=2 on train.
 
@@ -288,11 +287,11 @@
 
 > draw AUC on test data.
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/90799cf5a2527bfeb73a83b1fc307903bd5a1928.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/90799cf5a2527bfeb73a83b1fc307903bd5a1928.png)
 
 > Top 10 feature importance
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/dc4bf6c2ec831c3d74704f41d6dce91a15832f62.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/dc4bf6c2ec831c3d74704f41d6dce91a15832f62.png)
 
 ## 2.3  KNN
 
@@ -333,7 +332,7 @@ accuracy <- function(cm){
 
 > draw chart result by k
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/9e0cc1e70520c524e3ce0c853bb1fc2107ac985e.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/9e0cc1e70520c524e3ce0c853bb1fc2107ac985e.png)
 
 > Find the best k
 
@@ -351,7 +350,7 @@ accuracy <- function(cm){
 
     ## Setting direction: controls < cases
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/5778899745fdb2b0f6b82de88d234e402041b12b.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/5778899745fdb2b0f6b82de88d234e402041b12b.png)
 
 ## 2.4 Logistic Regression
 
@@ -404,7 +403,7 @@ accuracy <- function(cm){
     ##        'Positive' Class : No              
     ## 
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/bc28a1b98fa4e7d9dd59d4d98b0a23febd1413f3.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/bc28a1b98fa4e7d9dd59d4d98b0a23febd1413f3.png)
 
 > Test set
 
@@ -436,5 +435,5 @@ accuracy <- function(cm){
     ##        'Positive' Class : No             
     ## 
 
-![](vertopal_13072b7bdc7249c89d6eab327256fbc8/b153fb000efbd881a3df58143dc2832c116d91eb.png){width="672"}
+![](vertopal_13072b7bdc7249c89d6eab327256fbc8/b153fb000efbd881a3df58143dc2832c116d91eb.png)
 
