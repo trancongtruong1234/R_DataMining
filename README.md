@@ -104,7 +104,7 @@
 
 ## 2.1.2 Model
 
-## ecision Tree
+## decision Tree
 
 ![](vertopal_13072b7bdc7249c89d6eab327256fbc8/653803f7758f3149e4626ad2a0b32cd7923196d0.png)
 
