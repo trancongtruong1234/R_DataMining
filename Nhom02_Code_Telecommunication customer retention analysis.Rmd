@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# FinalProject_Telecommunication
+# FinalProject_TelcoCustomerChurn
 
 # Tên Thành Viên Trong Nhóm
 
@@ -43,7 +43,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **Tổng quan dataset:**
 ```{r echo=FALSE}
-data <-read.csv('Telecommunication.csv')
+data <-read.csv('TelcoCustomerChurn.csv')
 summary(data)
 ```
 **6 Dòng Đầu :**`
@@ -356,7 +356,7 @@ library(cowplot)
 library(e1071)
 ```
 ```{r echo=FALSE}
-churn<-read.csv('Telecommunication.csv')
+churn<-read.csv('TelcoCustomerChurn.csv')
 churn <- na.omit(churn)
 ```
 
@@ -477,7 +477,7 @@ varImpPlot(rfModel_new, sort=T, n.var = 10, main = 'Top 10 Feature Importance')
 require(kknn)
 library(kknn)
 library(e1071)
-data <- read.csv("Telecommunication.csv")
+data <- read.csv("TelcoCustomerChurn.csv")
 ```
 ### 2.3.1 Tiền xư lí dữ liệu
 >Loại bỏ biến không cần thiết là customerId **
@@ -654,7 +654,7 @@ library(reshape2)
 
 ```{r echo=FALSE, include=FALSE}
 
-telco = read.csv("Telecommunication.csv")
+telco = read.csv("TelcoCustomerChurn.csv")
 telco <- data.frame(telco)
 ```
 
@@ -667,7 +667,7 @@ telco <- data.frame(telco)
 
 ```{r echo =FALSE , include=FALSE}
 
-telco = read.csv("Telecommunication.csv")
+telco = read.csv("TelcoCustomerChurn.csv")
 telco <- data.frame(telco)
 ```
 ```{r echo= FALSE, warning = FALSE, message=FALSE}
